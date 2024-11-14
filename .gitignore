@@ -1,0 +1,4 @@
+/.idea/*
+!/.idea/cmake.xml
+/cmake-build-debug-wsl
+/cmake-build-release-wsl
