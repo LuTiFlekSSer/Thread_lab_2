@@ -7,6 +7,8 @@ find_package(MPI REQUIRED)
 
 add_executable(Thread_lab_2 main.c
         src/task2/task2.c
-        src/task2/task2.h)
+        src/task2/task2.h
+        src/task3/task3.c
+        src/task3/task3.h)
 
 target_link_libraries(Thread_lab_2 PUBLIC MPI::MPI_C)

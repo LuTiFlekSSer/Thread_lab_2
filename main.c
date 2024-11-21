@@ -1,6 +1,7 @@
 #include <stdio.h>
+#include "src/task3/task3.h"
 
 int main(void) {
-    printf("Hello, World!\n");
+    TASK3_run(50, 1e-3, 0.3, 1);
     return 0;
 }
