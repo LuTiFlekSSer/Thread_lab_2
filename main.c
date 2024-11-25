@@ -1,7 +1,18 @@
+#include <float.h>
+#include <limits.h>
 #include <stdio.h>
+#include <mpi.h>
 #include "src/task3/task3.h"
 
-int main(void) {
-    TASK3_run(50, 1e-3, 0.3, 1);
+int main() {
+    int rank, comm_size;
+    MPI_Init(NULL,NULL);
+
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    TASK3_run(5, 1e-3, 0.3, 1, rank, comm_size);
+
+    MPI_Finalize();
     return 0;
 }
