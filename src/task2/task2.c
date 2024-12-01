@@ -3,7 +3,6 @@
 #include <math.h>
 #include <stdio.h>
 
-//TODO все три целые числа:  n/p ,корень size, p,
 void TASK2_run(LAB2_matrix const mat1, LAB2_matrix const mat2, int const rank, int const comm_size,
                LAB2_matrix *result) {
     int const s_P = (int)round(sqrt(comm_size)), shift = mat1.n / s_P;
