@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <mpi.h>
 #include <time.h>
-
+#include <stdlib.h>
 #include "src/task2/task2.h"
 #include "src/task3/task3.h"
 #include "src/utils/utils.h"
@@ -91,8 +91,8 @@ void menu(int const rank, int const comm_size) {
 
 
             MPI_Bcast(&option, 1, MPI_CHAR, 0, MPI_COMM_WORLD);
-            MPI_Bcast(&matrix.n, 1, MPI_LONG, 0, MPI_COMM_WORLD);
-            MPI_Bcast(&matrix.m, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&matrix.n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&matrix.m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
             MPI_Bcast(matrix.array, matrix.n * matrix.m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             MPI_Bcast(vector.array, vector.m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -180,7 +180,7 @@ void menu(int const rank, int const comm_size) {
             }
 
             MPI_Bcast(&option, 1, MPI_CHAR, 0, MPI_COMM_WORLD);
-            MPI_Bcast(&matrix1.n, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&matrix1.n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
             MPI_Bcast(matrix1.array, matrix1.n * matrix1.m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             MPI_Bcast(matrix2.array, matrix2.n * matrix2.m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -200,7 +200,7 @@ void menu(int const rank, int const comm_size) {
             break;
         }
         case '3': {
-            int64_t n_points;
+            int n_points;
             double precision, border_temp, half_length;
 
             while (1) {
@@ -217,7 +217,7 @@ void menu(int const rank, int const comm_size) {
             }
             MPI_Bcast(&option, 1, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-            MPI_Bcast(&n_points, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&n_points, 1, MPI_INT, 0, MPI_COMM_WORLD);
             MPI_Bcast(&precision, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             MPI_Bcast(&border_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             MPI_Bcast(&half_length, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -246,8 +246,8 @@ void runner(int const rank, int const comm_size) {
         switch (command) {
         case '1': {
             LAB2_matrix matrix, vector;
-            MPI_Bcast(&matrix.n, 1, MPI_LONG, 0, MPI_COMM_WORLD);
-            MPI_Bcast(&matrix.m, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&matrix.n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&matrix.m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
             matrix_alloc(matrix.m, 1, &vector);
             matrix_alloc(matrix.n, matrix.m, &matrix);
@@ -264,7 +264,7 @@ void runner(int const rank, int const comm_size) {
         }
         case '2': {
             LAB2_matrix matrix1, matrix2;
-            MPI_Bcast(&matrix1.n, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&matrix1.n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
             matrix_alloc(matrix1.n, matrix1.n, &matrix2);
             matrix_alloc(matrix1.n, matrix1.n, &matrix1);
@@ -280,10 +280,10 @@ void runner(int const rank, int const comm_size) {
             break;
         }
         case '3': {
-            int64_t n_points;
+            int n_points;
             double precision, border_temp, half_length;
 
-            MPI_Bcast(&n_points, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&n_points, 1, MPI_INT, 0, MPI_COMM_WORLD);
             MPI_Bcast(&precision, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             MPI_Bcast(&border_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             MPI_Bcast(&half_length, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -311,8 +311,8 @@ int main() {
     } else {
         runner(rank, comm_size);
     }
-    // 500 0.0001 0.3 1
 
     MPI_Finalize();
+    // 500 0.0001 0.3 1
     return 0;
 }

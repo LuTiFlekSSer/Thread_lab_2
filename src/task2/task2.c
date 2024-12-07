@@ -1,7 +1,8 @@
-#include "task2.h"
 #include <mpi.h>
 #include <math.h>
-#include <stdio.h>
+#include <stdlib.h>
+#include "task2.h"
+
 
 void TASK2_run(LAB2_matrix const mat1, LAB2_matrix const mat2, int const rank, int const comm_size,
                LAB2_matrix *result) {
