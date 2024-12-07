@@ -123,7 +123,7 @@ void menu(int const rank, int const comm_size) {
                 if (matrix1.n <= 0) {
                     printf("Size must be greater than 0\n");
                 } else if (matrix1.n % (int)round(sqrt(comm_size)) != 0) {
-                    printf("Size of matrix must be divided by root of number of threads\n");
+                    printf("Size of matrix must be divided by root of number of processes\n");
                 } else {
                     break;
                 }
@@ -200,6 +200,11 @@ void menu(int const rank, int const comm_size) {
             break;
         }
         case '3': {
+            if (ceil(sqrt(comm_size)) - sqrt(comm_size) >= EPS) {
+                printf("Number of processes must be perfect square\n");
+                break;
+            }
+
             int n_points;
             double precision, border_temp, half_length;
 
@@ -211,6 +216,8 @@ void menu(int const rank, int const comm_size) {
 
                 if (n_points <= 0 || precision <= 0 || half_length <= 0) {
                     printf("Number of grid points, precision, half-length of distribution must be greater than 0\n");
+                } else if (n_points % (int)round(sqrt(comm_size)) != 0) {
+                    printf("Number of grid points must be divided by root of number of processes\n");
                 } else {
                     break;
                 }

@@ -48,14 +48,3 @@ void matrix_get_block(LAB2_matrix const matrix, int const i, int const j, int co
         }
     }
 }
-
-void matrix_get_pad_block(LAB2_matrix const matrix, int const i, int const j, int const block_size,
-                          LAB2_matrix *block) {
-    matrix_alloc(block_size, block_size, block);
-
-    for (int x = 0; x < block_size; ++x) {
-        for (int y = 0; y < block_size; ++y) {
-            *matrix_get(*block, x, y) = *matrix_get(matrix, i * (block_size - 2) + x, j * (block_size - 2) + y);
-        }
-    }
-}

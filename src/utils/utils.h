@@ -18,6 +18,4 @@ void matrix_mult(LAB2_matrix mat1, LAB2_matrix mat2, LAB2_matrix *result);
 
 void matrix_get_block(LAB2_matrix matrix, int i, int j, int block_size, LAB2_matrix *block);
 
-void matrix_get_pad_block(LAB2_matrix matrix, int i, int j, int block_size, LAB2_matrix *block);
-
 #endif
