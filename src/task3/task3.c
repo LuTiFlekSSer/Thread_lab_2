@@ -40,19 +40,19 @@ void TASK3_run(int const n_points, double const eps, double const temperature, d
     MPI_Bcast(U.array, (n_points + 2) * (n_points + 2), MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(F.array, n_points * n_points, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    double *dm = calloc(comm_size, sizeof(double));
+    double dm = 0;
     double d_max = 1;
     double const h2 = h * h;
-    int const s_P = (int)round(sqrt(comm_size)), shift = U.n / s_P, shift_sqr = shift * shift;
+    int const s_P = (int)round(sqrt(comm_size)), shift = F.n / s_P, shift_sqr = shift * shift;
     int const i_P = rank / s_P, j_P = rank % s_P;
 
-    double *sendbuf = calloc(shift * shift, sizeof(double)),
+    double *sendbuf = calloc(shift_sqr, sizeof(double)),
            *recvbuf = calloc(n_points * n_points, sizeof(double));
     int *recvcounts = calloc(comm_size, sizeof(int)),
         *displs = calloc(comm_size, sizeof(int));
 
     for (int i = 0; i < comm_size; ++i) {
-        recvcounts[i] = shift * shift;
+        recvcounts[i] = shift_sqr;
     }
 
     for (int i = 1; i < comm_size; ++i) {
@@ -61,10 +61,7 @@ void TASK3_run(int const n_points, double const eps, double const temperature, d
 
     while (d_max > eps) {
         d_max = 0;
-        double local_d_max = 0;
-        for (int i = 0; i < comm_size; ++i) {
-            dm[i] = 0;
-        }
+        dm = 0;
 
         int const i0 = i_P * shift + 1, j0 = j_P * shift + 1;
         int counter = 0;
@@ -74,13 +71,14 @@ void TASK3_run(int const n_points, double const eps, double const temperature, d
                 int const j = j0 + n - i + i0;
 
                 double const tmp = *matrix_get(U, i, j);
-                sendbuf[counter] = 0.25 * (*matrix_get(U, i - 1, j) + *matrix_get(U, i + 1, j) + *
-                    matrix_get(U, i, j - 1) + *matrix_get(U, i, j + 1) - h2 * *matrix_get(F, i - 1, j - 1));
+                *matrix_get(U, i, j) = sendbuf[counter] = 0.25 * (*matrix_get(U, i - 1, j) +
+                    *matrix_get(U, i + 1, j) + *matrix_get(U, i, j - 1) + *matrix_get(U, i, j + 1) -
+                    h2 * *matrix_get(F, i - 1, j - 1));
 
                 double const d = fabs(tmp - sendbuf[counter++]);
 
-                if (dm[rank] < d) {
-                    dm[rank] = d;
+                if (dm < d) {
+                    dm = d;
                 }
             }
         }
@@ -90,43 +88,41 @@ void TASK3_run(int const n_points, double const eps, double const temperature, d
                 int const j = j0 + 2 * shift - 2 - n - (i - i0);
 
                 double const tmp = *matrix_get(U, i, j);
-                sendbuf[counter] = 0.25 * (*matrix_get(U, i - 1, j) + *matrix_get(U, i + 1, j) + *
-                    matrix_get(U, i, j - 1) + *matrix_get(U, i, j + 1) - h2 * *matrix_get(F, i - 1, j - 1));
+                *matrix_get(U, i, j) = sendbuf[counter] = 0.25 * (*matrix_get(U, i - 1, j) +
+                    *matrix_get(U, i + 1, j) + *matrix_get(U, i, j - 1) + *matrix_get(U, i, j + 1) -
+                    h2 * *matrix_get(F, i - 1, j - 1));
 
                 double const d = fabs(tmp - sendbuf[counter++]);
 
-                if (dm[rank] < d) {
-                    dm[rank] = d;
+                if (dm < d) {
+                    dm = d;
                 }
             }
         }
 
         MPI_Allgatherv(sendbuf, counter, MPI_DOUBLE, recvbuf, recvcounts, displs, MPI_DOUBLE, MPI_COMM_WORLD);
 
-        int idx_i = 1, idx_j = 1;
-        for (int v_p = 0; v_p < s_P; ++v_p) {
-            for (int i = 0; i < shift; ++i) {
-                for (int g_p = 0; g_p < s_P; ++g_p) {
-                    for (int j = 0; j < shift; ++j) {
-                        *matrix_get(U, idx_i, idx_j++) = recvbuf[v_p * shift_sqr * s_P +
-                            g_p * shift_sqr + i * shift + j];
+        counter = 0;
+        for (int l_p = 0; l_p < comm_size; ++l_p) {
+            int const l_i0 = l_p / s_P * shift + 1,
+                      l_j0 = l_p % s_P * shift + 1;
 
-                        if (idx_j == U.n - 1) {
-                            ++idx_i;
-                            idx_j = 1;
-                        }
-                    }
+            for (int n = 0; n < shift; ++n) {
+                for (int i = l_i0; i <= l_i0 + n; ++i) {
+                    int const j = l_j0 + n - i + l_i0;
+                    *matrix_get(U, i, j) = recvbuf[counter++];
+                }
+            }
+
+            for (int n = shift - 2; n >= 0; --n) {
+                for (int i = l_i0 + shift - 1; i >= l_i0 + shift - n - 1; --i) {
+                    int const j = l_j0 + 2 * shift - 2 - n - (i - l_i0);
+                    *matrix_get(U, i, j) = recvbuf[counter++];
                 }
             }
         }
 
-        for (int i = 0; i < comm_size; ++i) {
-            if (local_d_max < dm[i]) {
-                local_d_max = dm[i];
-            }
-        }
-
-        MPI_Allreduce(&local_d_max, &d_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        MPI_Allreduce(&dm, &d_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
     }
 
     if (rank == 0) {
@@ -142,7 +138,6 @@ void TASK3_run(int const n_points, double const eps, double const temperature, d
         fclose(file);
     }
 
-    free(dm);
     matrix_free(&U);
     matrix_free(&F);
     free(recvbuf);

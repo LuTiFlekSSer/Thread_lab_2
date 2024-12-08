@@ -34,7 +34,7 @@ void menu(int const rank, int const comm_size) {
 
             while (1) {
                 printf("Sizes of matrix (n, m) = ");
-                scanf("%ld %ld", &matrix.n, &matrix.m);
+                scanf("%d %d", &matrix.n, &matrix.m);
                 getchar();
 
                 if (matrix.n <= 0 || matrix.m <= 0) {
@@ -117,7 +117,7 @@ void menu(int const rank, int const comm_size) {
 
             while (1) {
                 printf("Size of matrix (n) = ");
-                scanf("%ld", &matrix1.n);
+                scanf("%d", &matrix1.n);
                 getchar();
 
                 if (matrix1.n <= 0) {
@@ -211,7 +211,7 @@ void menu(int const rank, int const comm_size) {
             while (1) {
                 printf("Number of grid points, precision, border temperature, half-length of distribution = ");
 
-                scanf("%ld %lf %lf %lf", &n_points, &precision, &border_temp, &half_length);
+                scanf("%d %lf %lf %lf", &n_points, &precision, &border_temp, &half_length);
                 getchar();
 
                 if (n_points <= 0 || precision <= 0 || half_length <= 0) {
