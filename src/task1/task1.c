@@ -87,22 +87,48 @@ void TASK1_run(LAB2_matrix const mat, LAB2_matrix const vec, int const rank, int
         int const start_x = rank / step_p * step_x;
         int const start_y = rank % step_p * step_y;
         int const end_x = rank / step_p == step_p - 1 ? mat.n : (rank / step_p + 1) * step_x;
-        int const end_y = rank % step_p == step_p - 1 ? mat.m : (rank / step_p + 1) * step_y;
+        int const end_y = rank % step_p == step_p - 1 ? mat.m : (rank % step_p + 1) * step_y;
 
 
-        double *tmp = calloc(step_y, sizeof(double));
+        double *tmp = calloc(end_x - start_x, sizeof(double)),
+               *recv = calloc(end_x - start_x, sizeof(double));
+        int *recvc = calloc(step_p, sizeof(int)),
+            *displ = calloc(step_p, sizeof(int));
 
-        for (int i = start_x; i < end_x; i++) {
-            for (int j = start_y; j < end_y; j++) {
-                tmp[j - start_y] += *matrix_get(mat, i, j) * *matrix_get(vec, j, 0);
-            }
+        for (int r = 0; r < comm_size; r += step_p) {
+            int const start_x_l = r / step_p * step_x;
+            int const end_x_l = r / step_p == step_p - 1 ? mat.n : (r / step_p + 1) * step_x;
+            recvc[r / step_p] = end_x_l - start_x_l;
         }
 
 
+        for (int i = 1; i < step_p; ++i) {
+            displ[i] = displ[i - 1] + recvc[i - 1];
+        }
 
+        for (int i = start_x; i < end_x; i++) {
+            for (int j = start_y; j < end_y; j++) {
+                tmp[i - start_x] += *matrix_get(mat, i, j) * *matrix_get(vec, j, 0);
+            }
+        }
+
+        int group = rank / step_p;
+        MPI_Comm subgroup_comm;
+        MPI_Comm_split(MPI_COMM_WORLD, group, rank, &subgroup_comm);
+
+        MPI_Reduce(tmp, recv, end_x - start_x,MPI_DOUBLE,MPI_SUM, 0, subgroup_comm);
+        MPI_Comm_free(&subgroup_comm);
 
         LAB2_matrix ans;
         matrix_alloc(mat.n, 1, &ans);
+
+        group = rank % step_p == 0 ? 1 : 0;
+        MPI_Comm_split(MPI_COMM_WORLD, group, rank, &subgroup_comm);
+
+        if (group) {
+            MPI_Gatherv(recv, end_x - start_x,MPI_DOUBLE, ans.array, recvc, displ,MPI_DOUBLE, 0, subgroup_comm);
+        }
+        MPI_Comm_free(&subgroup_comm);
 
         if (rank == 0) {
             *result = ans;
@@ -111,6 +137,9 @@ void TASK1_run(LAB2_matrix const mat, LAB2_matrix const vec, int const rank, int
         }
 
         free(tmp);
+        free(recv);
+        free(recvc);
+        free(displ);
         break;
     }
     }
