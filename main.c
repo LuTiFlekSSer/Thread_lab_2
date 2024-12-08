@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include <time.h>
 #include <stdlib.h>
+#include "src/task1/task1.h"
 #include "src/task2/task2.h"
 #include "src/task3/task3.h"
 #include "src/utils/utils.h"
@@ -31,6 +32,19 @@ void menu(int const rank, int const comm_size) {
         switch (option) {
         case '1': {
             LAB2_matrix matrix, vector;
+            int choice;
+
+            while (1) {
+                printf("Enter first task variant [1-3]\n");
+                scanf("%d", &choice);
+                getchar();
+
+                if (choice <= 0 || choice > 3) {
+                    printf("Invalid choice\n");
+                } else {
+                    break;
+                }
+            }
 
             while (1) {
                 printf("Sizes of matrix (n, m) = ");
@@ -91,18 +105,22 @@ void menu(int const rank, int const comm_size) {
 
 
             MPI_Bcast(&option, 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&choice, 1, MPI_INT, 0, MPI_COMM_WORLD);
             MPI_Bcast(&matrix.n, 1, MPI_INT, 0, MPI_COMM_WORLD);
             MPI_Bcast(&matrix.m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
             MPI_Bcast(matrix.array, matrix.n * matrix.m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-            MPI_Bcast(vector.array, vector.m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+            MPI_Bcast(vector.array, vector.n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-            //TASK1_run #todo
+            LAB2_matrix result;
+            TASK1_run(matrix, vector, rank, comm_size, choice, &result);
 
-            // if (custom == 'y') {
-            //     matrix_print(result, 0, 0, result.n, result.m);
-            // }
+            if (custom == 'y') {
+                printf("\n");
+                matrix_print(result, 0, 0, result.n, result.m);
+            }
 
+            matrix_free(&result);
             matrix_free(&vector);
             matrix_free(&matrix);
 
@@ -189,11 +207,11 @@ void menu(int const rank, int const comm_size) {
             TASK2_run(matrix1, matrix2, rank, comm_size, &result);
 
             if (custom == 'y') {
+                printf("\n");
                 matrix_print(result, 0, 0, result.n, result.m);
             }
 
             matrix_free(&result);
-
             matrix_free(&matrix2);
             matrix_free(&matrix1);
 
@@ -253,6 +271,8 @@ void runner(int const rank, int const comm_size) {
         switch (command) {
         case '1': {
             LAB2_matrix matrix, vector;
+            int choice;
+            MPI_Bcast(&choice, 1, MPI_INT, 0, MPI_COMM_WORLD);
             MPI_Bcast(&matrix.n, 1, MPI_INT, 0, MPI_COMM_WORLD);
             MPI_Bcast(&matrix.m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -260,9 +280,9 @@ void runner(int const rank, int const comm_size) {
             matrix_alloc(matrix.n, matrix.m, &matrix);
 
             MPI_Bcast(matrix.array, matrix.n * matrix.m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-            MPI_Bcast(vector.array, vector.m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+            MPI_Bcast(vector.array, vector.n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-            //TASK1_run #todo
+            TASK1_run(matrix, vector, rank, comm_size, choice, NULL);
 
             matrix_free(&matrix);
             matrix_free(&vector);

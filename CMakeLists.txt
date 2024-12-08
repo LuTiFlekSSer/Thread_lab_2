@@ -17,6 +17,8 @@ if (NOT MPI_FOUND)
 endif()
 
 add_executable(Thread_lab_2 main.c
+        src/task1/task1.c
+        src/task1/task1.h
         src/task2/task2.c
         src/task2/task2.h
         src/task3/task3.c
