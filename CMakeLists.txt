@@ -3,6 +3,8 @@ project(Thread_lab_2 C)
 
 set(CMAKE_C_STANDARD 11)
 
+add_compile_options(-Wno-unused-result)
+
 find_package(MPI)
 
 if (NOT MPI_FOUND)

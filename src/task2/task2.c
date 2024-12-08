@@ -28,15 +28,19 @@ void TASK2_run(LAB2_matrix const mat1, LAB2_matrix const mat2, int const rank, i
 
         MPI_Request send_request1, recv_request1, send_request2, recv_request2;
 
-        MPI_Isend(a.array, shift * shift, MPI_DOUBLE, i * s_P + (j + s_P - 1) % s_P, 0, MPI_COMM_WORLD, &send_request1);
-        MPI_Irecv(a.array, shift * shift, MPI_DOUBLE, i * s_P + (j + 1) % s_P, 0, MPI_COMM_WORLD, &recv_request1);
-        MPI_Wait(&send_request1, MPI_STATUS_IGNORE);
-        MPI_Wait(&recv_request1, MPI_STATUS_IGNORE);
+        if (comm_size != 1) {
+            MPI_Isend(a.array, shift * shift, MPI_DOUBLE, i * s_P + (j + s_P - 1) % s_P, 0, MPI_COMM_WORLD,
+                      &send_request1);
+            MPI_Irecv(a.array, shift * shift, MPI_DOUBLE, i * s_P + (j + 1) % s_P, 0, MPI_COMM_WORLD, &recv_request1);
+            MPI_Wait(&send_request1, MPI_STATUS_IGNORE);
+            MPI_Wait(&recv_request1, MPI_STATUS_IGNORE);
 
-        MPI_Isend(b.array, shift * shift, MPI_DOUBLE, (i + s_P - 1) % s_P * s_P + j, 0, MPI_COMM_WORLD, &send_request2);
-        MPI_Irecv(b.array, shift * shift, MPI_DOUBLE, (i + 1) % s_P * s_P + j, 0, MPI_COMM_WORLD, &recv_request2);
-        MPI_Wait(&send_request2, MPI_STATUS_IGNORE);
-        MPI_Wait(&recv_request2, MPI_STATUS_IGNORE);
+            MPI_Isend(b.array, shift * shift, MPI_DOUBLE, (i + s_P - 1) % s_P * s_P + j, 0, MPI_COMM_WORLD,
+                      &send_request2);
+            MPI_Irecv(b.array, shift * shift, MPI_DOUBLE, (i + 1) % s_P * s_P + j, 0, MPI_COMM_WORLD, &recv_request2);
+            MPI_Wait(&send_request2, MPI_STATUS_IGNORE);
+            MPI_Wait(&recv_request2, MPI_STATUS_IGNORE);
+        }
     }
 
     if (rank == 0) {

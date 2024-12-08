@@ -19,6 +19,7 @@ void menu(int const rank, int const comm_size) {
     char option;
     srand(time(0));
 
+cycle:
     while (1) {
         printf("\nChoose task:\n"
             "[1] - Task 1 (multiplying matrix by vector)\n"
@@ -41,6 +42,9 @@ void menu(int const rank, int const comm_size) {
 
                 if (choice <= 0 || choice > 3) {
                     printf("Invalid choice\n");
+                } else if (choice == 3 && ceil(sqrt(comm_size)) - sqrt(comm_size) >= EPS) {
+                    printf("Number of processes must be perfect square\n");
+                    goto cycle;
                 } else {
                     break;
                 }
@@ -113,7 +117,12 @@ void menu(int const rank, int const comm_size) {
             MPI_Bcast(vector.array, vector.n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
             LAB2_matrix result;
+
+            double const start = MPI_Wtime();
             TASK1_run(matrix, vector, rank, comm_size, choice, &result);
+            double const end = MPI_Wtime();
+
+            printf("Elapsed time = %e sec.", end - start);
 
             if (custom == 'y') {
                 printf("\n");
@@ -204,7 +213,13 @@ void menu(int const rank, int const comm_size) {
             MPI_Bcast(matrix2.array, matrix2.n * matrix2.m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
             LAB2_matrix result;
+
+            double const start = MPI_Wtime();
             TASK2_run(matrix1, matrix2, rank, comm_size, &result);
+            double const end = MPI_Wtime();
+
+            printf("Elapsed time = %e sec.", end - start);
+
 
             if (custom == 'y') {
                 printf("\n");
@@ -247,7 +262,11 @@ void menu(int const rank, int const comm_size) {
             MPI_Bcast(&border_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             MPI_Bcast(&half_length, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
+            double const start = MPI_Wtime();
             TASK3_run(n_points, precision, border_temp, half_length, rank, comm_size);
+            double const end = MPI_Wtime();
+
+            printf("Elapsed time = %e sec.", end - start);
 
             break;
         }
@@ -340,6 +359,5 @@ int main() {
     }
 
     MPI_Finalize();
-    // 500 0.0001 0.3 1
     return 0;
 }
